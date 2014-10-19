@@ -50,6 +50,7 @@ LDFLAGS += -T CORTEX_M4F_STM32F4/stm32f429zi_flash.ld
 
 #files
 SRCDIR = src\
+		 CORTEX_M4F_STM32F4/Libraries/FreeRTOS\
 		 portable/GCC/ARM_CM4F\
 		 src/traffic
 		 
@@ -57,6 +58,7 @@ INCDIR = CORTEX_M4F_STM32F4 \
 		 include \
 		 portable/GCC/ARM_CM4F \
 		 CORTEX_M4F_STM32F4/board \
+		 CORTEX_M4F_STM32F4/Libraries/FreeRTOS/include\
 		 CORTEX_M4F_STM32F4/Libraries/CMSIS/Device/ST/STM32F4xx/Include \
 		 CORTEX_M4F_STM32F4/Libraries/CMSIS/Include \
 		 $(STM32_LIB)/inc \
