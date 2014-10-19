@@ -73,9 +73,7 @@ CFLAGS += -DUSE_STDPERIPH_DRIVER
 CFLAGS += -D"assert_param(expr)=((void)0)"
 
 #My restart
-SRC += \
-      CORTEX_M4F_STM32F4/main.c \
-      CORTEX_M4F_STM32F4/startup/system_stm32f4xx.c \
+SRC += CORTEX_M4F_STM32F4/startup/system_stm32f4xx.c \
       #CORTEX_M4F_STM32F4/stm32f4xx_it.c \
 
 SRC += $(wildcard $(addsuffix /*.c,$(SRCDIR))) \
