@@ -48,6 +48,8 @@ CFLAGS += -DSTM32F429_439xx
 # to run from FLASH
 CFLAGS += -DVECT_TAB_FLASH
 LDFLAGS += -TCORTEX_M4F_STM32F4/stm32f429zi_flash.ld
+LDFLAGS += -L $(call get_library_path,libc.a)
+LDFLAGS += -L $(call get_library_path,libgcc.a)
 
 #files
 SRCDIR = src\
@@ -106,7 +108,7 @@ $(BIN_IMAGE): $(EXECUTABLE)
 	$(SIZE) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJS)
-	$(CROSS_COMPILE)gcc $(CFLAGS) $(LDFLAGS) -Wl,-Map=$(MAP_FILE) -o $@ $^
+	$(LD) -o $@ $^ -Map=$(MAP_FILE) $(LDFLAGS)
 
 $(OUTDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
