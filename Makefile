@@ -4,6 +4,8 @@ OUTDIR = build
 EXECUTABLE = $(OUTDIR)/$(PROJECT).elf
 BIN_IMAGE = $(OUTDIR)/$(PROJECT).bin
 HEX_IMAGE = $(OUTDIR)/$(PROJECT).hex
+MAP_FILE = $(OUTDIR)/$(PROJECT).map
+LIST_FILE = $(OUTDIR)/$(PROJECT).lst
 
 STM32_LIB = CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver
 
@@ -23,19 +25,18 @@ CPU = cortex-m4
 CFLAGS = -mcpu=$(CPU) -march=armv7e-m -mtune=cortex-m4
 CFLAGS += -mlittle-endian -mthumb
 # Need study
-CFLAGS += -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -O0
+CFLAGS += -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
 
 define get_library_path
     $(shell dirname $(shell $(CC) $(CFLAGS) -print-file-name=$(1)))
 endef
-LDFLAGS += -L $(call get_library_path,libc.a)
-LDFLAGS += -L $(call get_library_path,libgcc.a)
 
 # Basic configurations
-CFLAGS += -g -std=c99 -Wall
+CFLAGS += -g3 -std=c99 -Wall -Werror \
+		  -DUSER_NAME=\"$(USER)\"
 
 # Optimizations
-CFLAGS += -O3 -ffast-math \
+CFLAGS += -O0 -ffast-math \
 		  -ffunction-sections -fdata-sections \
 		  -Wl,--gc-sections \
 		  -fno-common \
@@ -46,40 +47,37 @@ CFLAGS += -DSTM32F429_439xx
 
 # to run from FLASH
 CFLAGS += -DVECT_TAB_FLASH
-LDFLAGS += -T CORTEX_M4F_STM32F4/stm32f429zi_flash.ld
+LDFLAGS += -TCORTEX_M4F_STM32F4/stm32f429zi_flash.ld
 
 #files
 SRCDIR = src\
 		 CORTEX_M4F_STM32F4/Libraries/FreeRTOS\
-		 portable/GCC/ARM_CM4F\
-		 src/traffic
+		 CORTEX_M4F_STM32F4/Libraries/FreeRTOS/portable/GCC/ARM_CM4F\
 		 
-INCDIR = CORTEX_M4F_STM32F4 \
-		 include \
-		 portable/GCC/ARM_CM4F \
+INCDIR = include \
+		 CORTEX_M4F_STM32F4 \
+		 CORTEX_M4F_STM32F4/Libraries/FreeRTOS/portable/GCC/ARM_CM4F \
 		 CORTEX_M4F_STM32F4/board \
 		 CORTEX_M4F_STM32F4/Libraries/FreeRTOS/include\
 		 CORTEX_M4F_STM32F4/Libraries/CMSIS/Device/ST/STM32F4xx/Include \
 		 CORTEX_M4F_STM32F4/Libraries/CMSIS/Include \
 		 $(STM32_LIB)/inc \
-		 Utilities/STM32F429I-Discovery \
-		 src/traffic/include
 
 # STARTUP FILE
-SRC += CORTEX_M4F_STM32F4/startup_stm32f429_439xx.c
 
 # STM32F4xx_StdPeriph_Driver
 CFLAGS += -DUSE_STDPERIPH_DRIVER
 CFLAGS += -D"assert_param(expr)=((void)0)"
 
 #My restart
-SRC += CORTEX_M4F_STM32F4/startup/system_stm32f4xx.c \
+SRC += CORTEX_M4F_STM32F4/startup_stm32f429_439xx.s \
+       CORTEX_M4F_STM32F4/startup/system_stm32f4xx.c \
       #CORTEX_M4F_STM32F4/stm32f4xx_it.c \
 
 SRC += $(wildcard $(addsuffix /*.c,$(SRCDIR))) \
 	  $(wildcard $(addsuffix /*.s,$(SRCDIR)))
 
-SRC += portable/MemMang/heap_1.c
+SRC += CORTEX_M4F_STM32F4/Libraries/FreeRTOS/portable/MemMang/heap_1.c
 
 SRC +=  $(STM32_LIB)/src/misc.c \
 		$(STM32_LIB)/src/stm32f4xx_gpio.c \
@@ -94,36 +92,29 @@ SRC +=  $(STM32_LIB)/src/misc.c \
 		$(STM32_LIB)/src/stm32f4xx_ltdc.c \
 		$(STM32_LIB)/src/stm32f4xx_fmc.c \
 		$(STM32_LIB)/src/stm32f4xx_rng.c \
-		Utilities/STM32F429I-Discovery/stm32f429i_discovery.c \
-		Utilities/STM32F429I-Discovery/stm32f429i_discovery_sdram.c \
-		Utilities/STM32F429I-Discovery/stm32f429i_discovery_lcd.c \
-		Utilities/STM32F429I-Discovery/stm32f429i_discovery_ioe.c
 
 OBJS += $(addprefix $(OUTDIR)/,$(patsubst %.s,%.o,$(SRC:.c=.o)))
 
-CFLAGS += -DUSE_STDPERIPH_DRIVER
-CFLAGS += $(addprefix -I,$(INCDIR))
+INCLUDES = $(addprefix -I,$(INCDIR))
 
 all: $(BIN_IMAGE)
 
 $(BIN_IMAGE): $(EXECUTABLE)
 	$(OBJCOPY) -O binary $^ $@
 	$(OBJCOPY) -O ihex $^ $(HEX_IMAGE)
-	$(OBJDUMP) -h -S -D $(EXECUTABLE) > $(OUTDIR)/$(PROJECT).lst
+	$(OBJDUMP) -h -S -D $(EXECUTABLE) > $(LIST_FILE)
 	$(SIZE) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJS)
-	$(LD) -o $@ $(OBJS) \
-		--start-group $(LIBS) --end-group \
-		$(LDFLAGS)
+	$(CROSS_COMPILE)gcc $(CFLAGS) $(LDFLAGS) -Wl,-Map=$(MAP_FILE) -o $@ $^
 
 $(OUTDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $(INCLUDES) $< -o $@
 
-$(OUTDIR)/%.o: %.S
+$(OUTDIR)/%.o: %.s
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $(INCLUDES) $< -o $@
 
 flash:
 	st-flash write $(BIN_IMAGE) 0x8000000
