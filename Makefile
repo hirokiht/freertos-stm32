@@ -73,7 +73,7 @@ SRC += CORTEX_M4F_STM32F4/startup_stm32f429_439xx.s \
 SRC += $(wildcard $(addsuffix /*.c,$(SRCDIR))) \
 	  $(wildcard $(addsuffix /*.s,$(SRCDIR)))
 
-SRC += CORTEX_M4F_STM32F4/Libraries/FreeRTOS/portable/MemMang/heap_1.c
+SRC += CORTEX_M4F_STM32F4/Libraries/FreeRTOS/portable/MemMang/heap_4.c
 
 SRC +=  $(STM32_LIB)/src/misc.c \
 		$(STM32_LIB)/src/stm32f4xx_gpio.c \
@@ -130,4 +130,4 @@ clean:
 	rm -rf $(OUTDIR)/*
 
 dbg: $(EXECUTABLE)
-	openocd -f board/stm32f429discovery.cfg 2> /dev/null & arm-none-eabi-gdb $^ -x gdbscript && kill $! 2>/dev/null
+	openocd -f board/stm32f429discovery.cfg 2> /dev/null & arm-none-eabi-gdb $^ -x gdbscript && pkill openocd 2>/dev/null
