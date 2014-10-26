@@ -73,7 +73,7 @@ void enable_button_interrupts(void)
 void init_rs232(USART_TypeDef* usart, uint32_t BaudRate){
 	GPIO_InitTypeDef GPIO_InitStructure = {.GPIO_Mode = GPIO_Mode_AF, .GPIO_PuPd = GPIO_PuPd_NOPULL, .GPIO_OType = GPIO_OType_PP, .GPIO_Speed = GPIO_High_Speed};
     USART_InitTypeDef USART_InitStructure = {.USART_BaudRate = BaudRate, .USART_WordLength = USART_WordLength_8b, .USART_StopBits = USART_StopBits_1, .USART_Parity = USART_Parity_No, .USART_HardwareFlowControl = USART_HardwareFlowControl_None, .USART_Mode = USART_Mode_Rx | USART_Mode_Tx};
-    NVIC_InitTypeDef NVIC_InitStructure = {.NVIC_IRQChannelPreemptionPriority = 0, .NVIC_IRQChannelSubPriority = 0, .NVIC_IRQChannelCmd = ENABLE};
+    NVIC_InitTypeDef NVIC_InitStructure = {.NVIC_IRQChannelPreemptionPriority = 6, .NVIC_IRQChannelSubPriority = 0, .NVIC_IRQChannelCmd = ENABLE};
 
     if(usart == USART1){
 	    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
@@ -149,5 +149,6 @@ void init_rs232(USART_TypeDef* usart, uint32_t BaudRate){
     USART_ITConfig(usart, USART_IT_TXE, DISABLE);
     USART_ITConfig(usart, USART_IT_RXNE, ENABLE);
 
+    NVIC_SetPriorityGrouping(3);	//Set the interrupt to the correct group so that the priority will be higher than configMAX_SYSCALL_INTERRUPT_PRIORITY
     NVIC_Init(&NVIC_InitStructure); //Enable the USARTn_IRQ in the NVIC module (so that the USARTn interrupt handler is enabled).
 }
