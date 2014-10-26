@@ -69,7 +69,6 @@ INCDIR = include \
 
 # STM32F4xx_StdPeriph_Driver
 CFLAGS += -DUSE_STDPERIPH_DRIVER
-CFLAGS += -D"assert_param(expr)=((void)0)"
 
 #My restart
 SRC += CORTEX_M4F_STM32F4/startup_stm32f429_439xx.s \

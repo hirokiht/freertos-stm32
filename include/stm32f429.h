@@ -1,11 +1,6 @@
 #ifndef __STM32F429_H
 #define __STM32F429_H
 #include "stm32f4xx.h"
-#include "stm32f4xx_gpio.h"
-#include "stm32f4xx_rcc.h"
-#include "stm32f4xx_usart.h"
-#include "stm32f4xx_syscfg.h"
-#include "misc.h"
 
 /* This library contains routines for interfacing with the STM32F429i-DISCO board. */
 
