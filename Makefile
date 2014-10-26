@@ -1,4 +1,4 @@
-PROJECT = traffic
+PROJECT = main
 
 OUTDIR = build
 EXECUTABLE = $(OUTDIR)/$(PROJECT).elf
@@ -8,9 +8,6 @@ MAP_FILE = $(OUTDIR)/$(PROJECT).map
 LIST_FILE = $(OUTDIR)/$(PROJECT).lst
 
 STM32_LIB = CORTEX_M4F_STM32F4/Libraries/STM32F4xx_StdPeriph_Driver
-
-# set the path to STM32F429I-Discovery firmware package
-STDP ?= ../STM32F429I-Discovery_FW_V1.0.1
 
 # Toolchain configurations
 CROSS_COMPILE ?= arm-none-eabi-
@@ -63,9 +60,7 @@ INCDIR = include \
 		 CORTEX_M4F_STM32F4/Libraries/FreeRTOS/include\
 		 CORTEX_M4F_STM32F4/Libraries/CMSIS/Device/ST/STM32F4xx/Include \
 		 CORTEX_M4F_STM32F4/Libraries/CMSIS/Include \
-		 $(STM32_LIB)/inc \
-
-# STARTUP FILE
+		 $(STM32_LIB)/inc
 
 # STM32F4xx_StdPeriph_Driver
 CFLAGS += -DUSE_STDPERIPH_DRIVER
@@ -103,7 +98,7 @@ all: $(BIN_IMAGE)
 $(BIN_IMAGE): $(EXECUTABLE)
 	$(OBJCOPY) -O binary $^ $@
 	$(OBJCOPY) -O ihex $^ $(HEX_IMAGE)
-	$(OBJDUMP) -h -S -D $(EXECUTABLE) > $(LIST_FILE)
+	$(OBJDUMP) -h -S -D $^ > $(LIST_FILE)
 	$(SIZE) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJS)
@@ -132,8 +127,7 @@ openocd_flash:
 
 .PHONY: clean
 clean:
-	rm -rf $(EXECUTABLE)
-	rm -rf $(BIN_IMAGE)
-	rm -rf $(HEX_IMAGE)
-	rm -f $(OBJS)
-	rm -f $(OUTDIR)/$(PROJECT).lst
+	rm -rf $(OUTDIR)/*
+
+dbg: $(EXECUTABLE)
+	openocd -f board/stm32f429discovery.cfg 2> /dev/null & arm-none-eabi-gdb $^ -x gdbscript && kill $! 2>/dev/null
