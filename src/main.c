@@ -26,7 +26,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f429.h"
+#include "stm32f4.h"
 #include "stm32f4xx.h"
 
 #include "FreeRTOS.h"
